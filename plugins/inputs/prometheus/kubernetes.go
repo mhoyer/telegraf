@@ -359,6 +359,10 @@ func podHasMatchingNamespace(pod *corev1.Pod, p *Prometheus) bool {
 }
 
 func podReady(pod *corev1.Pod) bool {
+	if pod.Status.Phase == "Succeeded" || pod.Status.Phase == "Failed" {
+		return false
+	}
+
 	for _, cond := range pod.Status.Conditions {
 		if cond.Type == corev1.PodReady {
 			return true

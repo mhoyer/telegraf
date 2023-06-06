@@ -356,6 +356,49 @@ func TestLabelFilters(t *testing.T) {
 	}
 }
 
+func TestPodReady(t *testing.T) {
+	readyCondition := &corev1.PodCondition{}
+	readyCondition.Type = corev1.PodReady
+
+	pod := pod()
+	pod.Status.Conditions = append(pod.Status.Conditions, *readyCondition)
+	shouldMatch := podReady(pod)
+	require.Equal(t, true, shouldMatch)
+}
+
+func TestPodReadyAndInRunningPhase(t *testing.T) {
+	readyCondition := &corev1.PodCondition{}
+	readyCondition.Type = corev1.PodReady
+
+	pod := pod()
+	pod.Status.Conditions = append(pod.Status.Conditions, *readyCondition)
+	pod.Status.Phase = "Running"
+	shouldMatch := podReady(pod)
+	require.Equal(t, true, shouldMatch)
+}
+
+func TestPodNotReadyWhenInSucceedePhase(t *testing.T) {
+	readyCondition := &corev1.PodCondition{}
+	readyCondition.Type = corev1.PodReady
+
+	pod := pod()
+	pod.Status.Conditions = append(pod.Status.Conditions, *readyCondition)
+	pod.Status.Phase = "Succeeded"
+	shouldMatch := podReady(pod)
+	require.Equal(t, false, shouldMatch)
+}
+
+func TestPodNotReadyWhenInFailedPhase(t *testing.T) {
+	readyCondition := &corev1.PodCondition{}
+	readyCondition.Type = corev1.PodReady
+
+	pod := pod()
+	pod.Status.Conditions = append(pod.Status.Conditions, *readyCondition)
+	pod.Status.Phase = "Failed"
+	shouldMatch := podReady(pod)
+	require.Equal(t, false, shouldMatch)
+}
+
 func pod() *corev1.Pod {
 	p := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{}, Status: corev1.PodStatus{}, Spec: corev1.PodSpec{}}
 	p.Status.PodIP = "127.0.0.1"
